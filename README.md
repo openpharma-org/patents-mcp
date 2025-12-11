@@ -1,12 +1,10 @@
-# USPTO Patent MCP Server
+# Patent MCP Server
 
-A [FastMCP server](https://github.com/modelcontextprotocol/python-sdk/tree/main/src/mcp/server/fastmcp) for accessing United States Patent and Trademark Office (USPTO) patent and patent application data through the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API and the [Open Data Portal (ODP) API](https://data.uspto.gov/home). Using this server, Claude Desktop can pull data from the USPTO using either the Public Search API (the backend for the Patent Center) or the ODP APIs:
+A MCP Server for accessing patent data from multiple sources including the United States Patent and Trademark Office (USPTO) and Google Patents. This server provides access to:
 
-![Screen Capture of Cladue Desktop using Patents MCP Server](screencap.gif)
-
-For an introduction to MCP servers see [Introducing the Model Context Protcol](https://www.anthropic.com/news/model-context-protocol).
-
-Special thanks to [Parker Hancock](https://github.com/parkerhancock), author of the amazing [Patent Client project](https://github.com/parkerhancock/patent_client), for [blazing the trail](https://github.com/parkerhancock/patent_client/issues/63) to understanding of the string of requests and responses needed to pull data through the Public Search API.
+- **USPTO Patent Public Search** - Full-text search and document retrieval through the [Patent Public Search](https://www.uspto.gov/patents/search/patent-public-search) API
+- **USPTO Open Data Portal (ODP)** - Metadata, continuity, and assignment data through the [ODP API](https://data.uspto.gov/home)
+- **Google Patents** - Access to 90M+ patent publications from 17+ countries via Google BigQuery
 
 ## Features
 
@@ -19,16 +17,18 @@ This server provides tools for:
 
 ## API Sources
 
-This server interacts with two USPTO sources:
+This server interacts with three patent data sources:
 
 - **ppubs.uspto.gov** - For full text document access, PDF downloads, and advanced search
 - **api.uspto.gov** - For metadata, continuity information, transactions, and assignments
+- **Google Patents (BigQuery)** - For searching 90M+ patent publications across US, EP, WO, JP, CN, KR, GB, DE, FR, CA, AU and more
 
 ## Prerequisites
 
 - Claude Desktop (for integration). Other models and MCP clients have not been tested.
 - For Patent Public Search requests, no API Key is required, but [there are rate limits](https://github.com/parkerhancock/patent_client/issues/143#issuecomment-2078051755). This API is not meant for bulk downloads.
 - For ODP API requests, a USPTO ODP API Key (see below).
+- For Google Patents tools, a Google Cloud Project with BigQuery API enabled and appropriate credentials (see Google Cloud Setup below).
 - [UV](https://docs.astral.sh/uv/) for python version and dependency management.
 
 If you're a python developer, but still unfamiliar with uv, you're in for a treat. It's faster and easier than having a separate python version manager (like pyenv) and setting up, activating, and maintaining virtual environments with venv and pip.
@@ -66,15 +66,52 @@ If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install
 
 ## API Key Setup
 
+### USPTO Open Data Portal API Key
+
 To use the api.uspto.gov tools, you need to obtain an Open Data Portal (ODP) API key:
 
 1. Visit [USPTO's Getting Started page](https://data.uspto.gov/apis/getting-started) and follow the instructions to request an API key if you don't already have one.
 
-2. Create a `.env` file in the patent_mcp_server directory with the following content:
+2. Add your API key to the `.env` file in the patent_mcp_server directory:
    ```
    USPTO_API_KEY=<your_key_here>
    ```
 You don't need quotes or the < > brackets around your key. The ppubs tools will run without this API key, but the API key is required for the api tools.
+
+### Google Cloud Setup
+
+To use the Google Patents tools, you need to set up a Google Cloud project with BigQuery access:
+
+1. **Create a Google Cloud Project** (if you don't have one):
+   - Visit [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Note your project ID
+
+2. **Enable BigQuery API**:
+   - In your Google Cloud project, navigate to "APIs & Services" > "Library"
+   - Search for "BigQuery API" and enable it
+
+3. **Create a Service Account and Download Credentials**:
+   - Navigate to "IAM & Admin" > "Service Accounts"
+   - Click "Create Service Account"
+   - Give it a name (e.g., "patent-mcp-server")
+   - Grant it the "BigQuery User" role
+   - Click "Done"
+   - Click on the created service account
+   - Go to the "Keys" tab
+   - Click "Add Key" > "Create New Key" > "JSON"
+   - Save the downloaded JSON file to a secure location
+
+4. **Configure Environment Variables**:
+   Add the following to your `.env` file:
+   ```
+   GOOGLE_CLOUD_PROJECT=your-project-id
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key.json
+   ```
+
+   Replace `your-project-id` with your actual Google Cloud project ID and `/path/to/your/service-account-key.json` with the full path to your downloaded credentials file.
+
+**Note:** Google Patents data in BigQuery is publicly available, but you still need a Google Cloud project to run queries. BigQuery offers a [free tier](https://cloud.google.com/bigquery/pricing#free-tier) with 1 TB of query data processed per month at no charge.
 
 ## Claude Desktop Configuration
 
@@ -104,16 +141,18 @@ When integrated with Claude Desktop, the server will be automatically started wh
 
 ## Available Functions
 
-The server provides the following functions to interact with USPTO data. Note that the Claude Desktop client does not fully support all of these tools. For example, Claude Desktop does not at present allow for download of PDFs.
+The server provides the following functions to interact with patent data from multiple sources. Note that the Claude Desktop client does not fully support all of these tools. For example, Claude Desktop does not at present allow for download of PDFs.
 
 ### Public Patent Search (ppubs.uspto.gov)
 - `ppubs_search_patents` - Search for granted patents in USPTO Public Search
 - `ppubs_search_applications` - Search for published patent applications in USPTO Public Search
-- `ppubs_get_full_document` - Get full patent document details by GUID from ppubs.uspto.gov 
+- `ppubs_get_full_document` - Get full patent document details by GUID from ppubs.uspto.gov
 - `ppubs_get_patent_by_number` - Get a granted patent's full text by number from ppubs.uspto.gov
 - `ppubs_download_patent_pdf` - Download a granted patent as PDF from ppubs.uspto.gov (not currently supported by Claude Desktop)
 
 ### Open Data Portal API (api.uspto.gov)
+Requires USPTO API Key (see API Key Setup above).
+
 - `get_app(app_num)` - Get basic patent application data
 - `search_applications(...)` - Search for patent applications using query parameters
 - `download_applications(...)` - Download patent applications using query parameters
@@ -130,14 +169,17 @@ The server provides the following functions to interact with USPTO data. Note th
 - `search_datasets(...)` - Search bulk dataset products
 - `get_dataset_product(...)` - Get a specific product by its identifier
 
+### Google Patents (BigQuery)
+Requires Google Cloud setup (see Google Cloud Setup above). Provides access to 90M+ patent publications from 17+ countries.
+
+**Supported Countries:** US, EP (European Patent Office), WO (WIPO/PCT), JP (Japan), CN (China), KR (South Korea), GB (United Kingdom), DE (Germany), FR (France), CA (Canada), AU (Australia), and more.
+
+- `google_search_patents(query, country, limit, offset, start_date, end_date)` - Full-text search across patent titles and abstracts
+- `google_get_patent(publication_number)` - Get complete patent details by publication number
+- `google_get_patent_claims(publication_number)` - Get patent claims text
+- `google_get_patent_description(publication_number)` - Get patent description text
+- `google_search_by_inventor(inventor_name, country, limit, offset)` - Search patents by inventor name
+- `google_search_by_assignee(assignee_name, country, limit, offset)` - Search patents by company/assignee
+- `google_search_by_cpc(cpc_code, country, limit, offset)` - Search patents by CPC classification code
+
 Refer to the function docstrings in the code for detailed parameter information.
-
-## Testing
-
-The `/test/` directory contains a couple of scripts for testing. `test_patents.py` includes a few tests of direct HTTP requests to the ppubs.uspto.gov and api.uspto.gov endpoints. `test_tools.py` includes a complete set of tests for each tool available to the MCP server. Test results in JSON and PDF format are stored in the `/test/test_results` subdirectory.
-
-To execute a test, run `uv run test/test_tools.py` from the project root directory.
-
-## License
-
-MIT
