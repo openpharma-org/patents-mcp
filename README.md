@@ -40,7 +40,7 @@ If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/riemannzeta/patent_mcp_server
+   git clone https://github.com/openpharma-org/patents-mcp
    cd patent_mcp_server
    ```
 
