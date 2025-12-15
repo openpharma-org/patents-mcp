@@ -1,4 +1,4 @@
-# Patent MCP Server
+# Unofficial Patents MCP Server
 
 A MCP Server for accessing patent data from multiple sources including the United States Patent and Trademark Office (USPTO) and Google Patents. This server provides access to:
 
@@ -22,47 +22,6 @@ This server interacts with three patent data sources:
 - **ppubs.uspto.gov** - For full text document access, PDF downloads, and advanced search
 - **api.uspto.gov** - For metadata, continuity information, transactions, and assignments
 - **Google Patents (BigQuery)** - For searching 90M+ patent publications across US, EP, WO, JP, CN, KR, GB, DE, FR, CA, AU and more
-
-## Prerequisites
-
-- Claude Desktop (for integration). Other models and MCP clients have not been tested.
-- For Patent Public Search requests, no API Key is required, but [there are rate limits](https://github.com/parkerhancock/patent_client/issues/143#issuecomment-2078051755). This API is not meant for bulk downloads.
-- For ODP API requests, a USPTO ODP API Key (see below).
-- For Google Patents tools, a Google Cloud Project with BigQuery API enabled and appropriate credentials (see Google Cloud Setup below).
-- [UV](https://docs.astral.sh/uv/) for python version and dependency management.
-
-If you're a python developer, but still unfamiliar with uv, you're in for a treat. It's faster and easier than having a separate python version manager (like pyenv) and setting up, activating, and maintaining virtual environments with venv and pip.
-
-If you don't already have uv installed, `curl -LsSf https://astral.sh/uv/install.sh | sh` should do the trick.
-
-## Installation
-
-1. Clone this repository:
-
-   ```bash
-   git clone https://github.com/openpharma-org/patents-mcp
-   cd patent_mcp_server
-   ```
-
-2. Install dependencies with uv:
-
-   ```bash
-   uv sync
-   ```
-
-   If installed correctly, then:
-
-    ```bash
-    uv run patent-mcp-server
-    ```
-
-   Should write:
-
-    ```bash
-    INFO     Starting USPTO Patent MCP server with stdio transport
-    ```
-    
-   to the console. With an API key installed in the environment and Claude Desktop configured, the patents MCP server is ready.
 
 ## API Key Setup
 
