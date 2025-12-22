@@ -72,31 +72,23 @@ To use the Google Patents tools, you need to set up a Google Cloud project with 
 
 **Note:** Google Patents data in BigQuery is publicly available, but you still need a Google Cloud project to run queries. BigQuery offers a [free tier](https://cloud.google.com/bigquery/pricing#free-tier) with 1 TB of query data processed per month at no charge.
 
-## Claude Desktop Configuration
+## Usage
 
-To integrate this MCP server with Claude Desktop:
-
-1. Update your Claude Desktop configuration file (`claude_desktop_config.json`):
-   ```json
-    {
-      "mcpServers": {
-        "patents": {
-          "command": "uv",
-          "args": [
-            "--directory",
-            "/Users/username/patent_mcp_server",
-            "run",
-            "patent-mcp-server"
-          ]
-        }
+```json
+{
+   "mcpServers": {
+      "patents-mcp-server": {
+         "command": "uv",
+         "args": [
+         "--directory",
+         "/path/to/patents_mcp_server",
+         "run",
+         "patents-mcp-server"
+         ]
       }
-    }
-   ```
-   You can find `claude_desktop_config.json` on a mac by opening the Claude Desktop app, opening Settings (from the Claude menu or by Command + ' on the keyboard), clicking "Developer" in in the sidebar, and "Edit Config."
-
-2. Replace `/Users/username/patent_mcp_server` with the actual path to your patent_mcp_server directory if that's not where it was cloned. (If you're on a mac, this may mean simply replacing `username` with your username.)
-
-When integrated with Claude Desktop, the server will be automatically started when needed and doesn't need to be run separately. The server uses stdio transport for communication with Claude Desktop or other MCP clients running on the same host.
+   }
+}
+```
 
 ## Available Functions
 
